@@ -1,6 +1,8 @@
+const { IonError } = require('@iondv/core');
+
 const PREFIX = 'auth';
 
-module.exports = {
+const errors = module.exports = {
   NO_DS: `${PREFIX}.nods`,
   FORBID: `${PREFIX}.forbid`,
   TMP_BLOCK: `${PREFIX}.tmpb`,
@@ -27,3 +29,5 @@ module.exports = {
   EXT_AUTH_FAIL: `${PREFIX}.extauthfail`,
   NO_STRATEGY: `${PREFIX}.nostrategy`
 };
+
+IonError.registerMessages(errors);
