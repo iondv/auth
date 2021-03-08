@@ -85,8 +85,7 @@ function Anonymous(coactors) {
  */
 function Auth(options) {
   const _this = this;
-
-  const eventLoggerTypes = options.eventLogger.types();
+  const eventLoggerTypes = options.eventLogger && options.eventLogger.types();
   const exclude = options.exclude || [];
   const inactiveTimeout = parseDuration(options.inactiveTimeout || '15m');
   const passwordLifetime = parseDuration(options.passwordLifetime || '100y');
