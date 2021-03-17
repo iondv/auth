@@ -896,7 +896,7 @@ function Auth(options) {
         }
       }
     }
-    res.status(403).render('403');
+    res.status(403).render('Access denied');
   }
 
   function renderChangePwdForm(req, res, module) {
@@ -1009,9 +1009,7 @@ function Auth(options) {
         a.post('/' + checkPwd, checkPwdHandler());
       }
 
-      if (auth) {
-        a.use('/', verifier(basePath + auth, module, chpwd));
-      }
+      a.use('/', verifier(auth ? (basePath + auth) : (prefix + 'auth'), module, chpwd));
 
       if (chpwd) {
         a.get('/' + chpwd, changePwdFormHandler(module));
@@ -1030,7 +1028,7 @@ function Auth(options) {
         a.post('/' + profile, profileHandler(basePath + profile, success, module));
       }
     } else {
-      a.use('/', verifier(prefix, module, chpwd));
+      a.use('/', verifier(prefix + 'auth', module, chpwd));
 
       if (checkPwd) {
         a.post('/' + checkPwd, checkPwdHandler());
@@ -1165,7 +1163,7 @@ function Auth(options) {
 
       app.post(prefix + 'checkPwd', checkPwdHandler());
 
-      app.use(prefix, verifier());
+      app.use(prefix, verifier(prefix + 'auth'));
 
       app.get(prefix + 'chpwd', changePwdFormHandler());
 
@@ -1283,7 +1281,7 @@ function Auth(options) {
   };
 
   this.verifier = function (module) {
-    return verifier(null, module);
+    return verifier(`/${module}`, module);
   };
 
   function pathForCheck(chua, path) {
