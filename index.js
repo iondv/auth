@@ -338,7 +338,7 @@ function Auth(options) {
     delete req.session.authEntryPoint;
     const logoutRedirect = req.session.logoutRedirect;
     delete req.session.logoutRedirect;
-    res.redirect(logoutRedirect || exit || '/auth');
+    res.redirect(logoutRedirect || exit || '/');
   }
 
   function _changePwd(req, res, redirect) {
@@ -826,7 +826,7 @@ function Auth(options) {
         if (isNotStatic(req.originalUrl) && !req.xhr && req.session && !req.session.authEntryPoint) {
           req.session.authEntryPoint = req.originalUrl;
         }
-        return res.redirect(redirect || (module ? '/' + module : '') + '/auth');
+        return redirect ? res.redirect(redirect) : res.status(401).send('Unauthorized');
       } else if (!livePassword(req.user)) {
         chpwd = chpwd || 'chpwd';
         if (req.path === '/' + chpwd) {
@@ -834,7 +834,7 @@ function Auth(options) {
         }
         return _changePwd(req, res, (module ? '/' + module : '') + '/' + chpwd);
       } else if (!active(req.session.lastActive)) {
-        return _exit(req, res, redirect || (module ? '/' + module : '') + '/auth');
+        return _exit(req, res, redirect);
       }
 
       let path = req.path;
@@ -1009,7 +1009,7 @@ function Auth(options) {
         a.post('/' + checkPwd, checkPwdHandler());
       }
 
-      a.use('/', verifier(auth ? (basePath + auth) : (prefix + 'auth'), module, chpwd));
+      a.use('/', verifier(auth ? (basePath + auth) : null, module, chpwd));
 
       if (chpwd) {
         a.get('/' + chpwd, changePwdFormHandler(module));
