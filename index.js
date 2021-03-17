@@ -977,7 +977,7 @@ function Auth(options) {
   }
 
   this.bindAuth = function (a, module, routes) {
-    let prefix = url.parse(app.locals.baseUrl).pathname;
+    const prefix = url.parse(app.locals.baseUrl).pathname;
     let {auth, register, success, chpwd, profile, checkPwd} = routes || {};
     auth = auth !== false ? auth || 'auth' : auth;
     register = register !== false ? register || 'register' : register;
@@ -986,34 +986,37 @@ function Auth(options) {
         checkPwd = 'checkPwd';
       }
     }
-    success = success || prefix + module;
+
+    const basePath = prefix + (module ? `${module}/` : '');
+    success = success || basePath;
+
     if (options.denyTopLevel) {
       if (auth) {
-        a.get(prefix + module + '/' + auth, authFormHandler(success, module));
-        a.get(prefix + module + '/sign-out', signOut(prefix + module + '/' + auth));
+        a.get('/' + auth, authFormHandler(success, module));
+        a.get('/sign-out', signOut(basePath + auth));
       } else {
-        a.get(prefix + module + '/sign-out', signOut('/'));
+        a.get('/sign-out', signOut('/'));
       }
       if (register) {
-        a.get(prefix + module + '/' + register, registerFormHandler(module));
-        a.post(prefix + module + '/' + register, cookieParser(), registerHandler(prefix + module + '/' + register, success, module));
+        a.get('/' + register, registerFormHandler(module));
+        a.post('/' + register, cookieParser(), registerHandler(basePath + register, success, module));
       }
       if (auth) {
-        a.post(prefix + module + '/' + auth, cookieParser(), signInHandler(prefix + module + '/' + auth, success, module));
+        a.post('/' + auth, cookieParser(), signInHandler(basePath + auth, success, module));
       }
 
       if (checkPwd) {
-        a.post(prefix + module + '/' + checkPwd, checkPwdHandler());
+        a.post('/' + checkPwd, checkPwdHandler());
       }
 
       if (auth) {
-        a.use(prefix + module, verifier(prefix + module + '/' + auth, module, chpwd));
+        a.use('/', verifier(basePath + auth, module, chpwd));
       }
 
       if (chpwd) {
-        a.get(prefix + module + '/' + chpwd, changePwdFormHandler(module));
-        a.post(prefix + module + '/' + chpwd, changePwdHandler(prefix + module + '/' + chpwd, module));
-        a.use(prefix, (req, res, next) => {
+        a.get('/' + chpwd, changePwdFormHandler(module));
+        a.post('/' + chpwd, changePwdHandler(basePath + chpwd, module));
+        a.use('/', (req, res, next) => {
           if (req.user && req.user.needPwdReset()) {
             res.redirect(app.locals.baseUrl + (changePwdUrl || 'chpwd'));
             return;
@@ -1023,23 +1026,22 @@ function Auth(options) {
       }
 
       if (profile) {
-        a.get(prefix + module + '/' + profile, profileFormHandler(module, prefix + module + '/' + auth));
-        a.post(prefix + module + '/' + profile, profileHandler(prefix + module + '/' + profile, success, module));
+        a.get('/' + profile, profileFormHandler(module, basePath + auth));
+        a.post('/' + profile, profileHandler(basePath + profile, success, module));
       }
     } else {
-
-      a.use(prefix + module, verifier(prefix, module, chpwd));
+      a.use('/', verifier(prefix, module, chpwd));
 
       if (checkPwd) {
-        a.post(prefix + module + '/' + checkPwd, checkPwdHandler());
+        a.post('/' + checkPwd, checkPwdHandler());
       }
 
       if (chpwd) {
-        a.get(prefix + module + '/' + chpwd, changePwdFormHandler(module));
-        a.post(prefix + module + '/' + chpwd, changePwdHandler());
-        a.use(prefix, (req, res, next) => {
+        a.get('/' + chpwd, changePwdFormHandler(module));
+        a.post('/' + chpwd, changePwdHandler());
+        a.use('/', (req, res, next) => {
           if (req.user && req.user.needPwdReset()) {
-            res.redirect(app.locals.baseUrl + (changePwdUrl || 'chpwd'));
+            res.redirect(prefix + (changePwdUrl || 'chpwd'));
             return;
           }
           next();
@@ -1047,11 +1049,11 @@ function Auth(options) {
       }
 
       if (profile) {
-        a.get(prefix + module + '/' + profile, profileFormHandler(module, prefix + 'auth'));
-        a.post(prefix + module + '/' + profile, profileHandler());
+        a.get('/' + profile, profileFormHandler(module, prefix + 'auth'));
+        a.post('/' + profile, profileHandler());
       }
 
-      a.get(prefix + module + '/sign-out', signOut(prefix + 'auth'));
+      a.get('/sign-out', signOut(prefix + 'auth'));
     }
   };
 
